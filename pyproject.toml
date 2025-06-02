@@ -1,0 +1,14 @@
+[project]
+name = "nebius-mcp-server"
+dynamic = ["version"]
+description = "Nebius Model Context Protocol Server"
+readme = "README.md"
+requires-python = ">=3.13"
+license = { text = "MIT" }
+authors = [{ name = "Ivan Kornilov" }]
+dependencies = [
+    "fastmcp>=0.4.1",
+    "mcp[cli]>=1.0.0",
+    "boto3>=1.34.0",
+    "pyyaml>=6.0.0",
+]
