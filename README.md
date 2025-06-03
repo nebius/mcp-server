@@ -1,6 +1,19 @@
-# Nebius MCP (Model Context Protocol) Server
+# Nebius MCP Server
 
 This service allows AI agents and assistants to fetch documentation for the Nebius services and execute Nebius CLI commands through the Model Context Protocol.
+
+## Scenarios
+
+There are 2 main scenario for that MCP server:
+1. Get and analyze the documentation for every service:
+    Examples (queries to the AI agent):
+    - How to create a compute instance at Nebius?
+    - How to create a storage bucket at Nebius?
+2. Execute commands and get results:
+    Examples:
+    - Provide me a list of all storage buckets within the project: project-e00some-cool-project
+    - Get me a list of the available compute platforms
+    - Show the details about the compute instance by name: some-cool-instance
 
 ## Requirements
 
