@@ -4,7 +4,7 @@ This service allows AI agents and assistants to fetch documentation for the Nebi
 
 ## Scenarios
 
-There are 2 main scenario for that MCP server:
+There are 2 main scenarios for this MCP server:
 1. Get and analyze the documentation for every service:
     Examples (queries to the AI agent):
     - How to create a compute instance at Nebius?
@@ -14,6 +14,10 @@ There are 2 main scenario for that MCP server:
     - Provide me a list of all storage buckets within the project: project-e00some-cool-project
     - Get me a list of the available compute platforms
     - Show the details about the compute instance by name: some-cool-instance
+
+## Disclaimer
+
+In the current implementation, the MCP server allows execution of any Nebius CLI commands, which may lead to destructive and insecure consequences. Always double-check the command suggested by the assistant before executing it. Never use the *Allow always* option for the *nebius_cli_execute* tool.
 
 ## Requirements
 
