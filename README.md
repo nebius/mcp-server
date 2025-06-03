@@ -78,7 +78,7 @@ uv run --with fastmcp fastmcp run ~/.nebius/mcp-server/server.py
 
 1. Open the Command Palette (Cmd+Shift+P / Ctrl+Shift+P) and run **mcp: Add Server**
 
-2. Choose `stdio` and and enter the following command: `uv run --with fastmcp fastmcp run ~/.nebius/mcp-server/server.py`
+2. Choose `Command (stdio)` and enter the following command: `uv run --with fastmcp fastmcp run ~/.nebius/mcp-server/server.py`
 
 3. Open the Chat panel and select **Agent** mode
     - You will now see the new MCP and its available tools by clicking the  :hammer_and_wrench:  button
