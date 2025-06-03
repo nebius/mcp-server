@@ -5,13 +5,13 @@ This service allows AI agents and assistants to fetch documentation for the Nebi
 ## Scenarios
 
 There are 2 main scenarios for this MCP server:
-1. Get and analyze the documentation for every service:
+1. Get and analyze the documentation for every service
 
     Examples (queries to the AI agent):
     - How to create a compute instance at Nebius?
     - How to create a storage bucket at Nebius?
 
-2. Execute commands and get results:
+2. Execute commands and get results
 
     Examples:
     - Provide me a list of all storage buckets within the project: project-e00some-cool-project
@@ -40,7 +40,9 @@ git clone git@github.com:nebius/mcp-server.git
 
 ### Using Claude Desktop
 
-1. Open the Claude Desktop configuration file: Claude -> Settings -> Developer -> Edit Config.
+0. Install Claude Desktop: https://claude.ai/download
+
+1. Open the Claude Desktop configuration file: Claude -> Settings -> Developer -> Edit Config
 
 2. Edit the configuration file to include the Nebius MCP Server:
    ```json
