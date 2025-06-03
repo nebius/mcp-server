@@ -38,11 +38,16 @@ cd ~/.nebius
 git clone git@github.com:nebius/mcp-server.git
 ```
 
+Use the next command to configure your MCP-compatible client:
+```bash
+uv run --with fastmcp fastmcp run ~/.nebius/mcp-server/server.py
+```
+
 ### Using Claude Desktop
 
 0. Install Claude Desktop: https://claude.ai/download
 
-1. Open the Claude Desktop configuration file: Claude -> Settings -> Developer -> Edit Config
+1. Open the Claude Desktop configuration file: *Claude -> Settings -> Developer -> Edit Config*
 
 2. Edit the configuration file to include the Nebius MCP Server:
    ```json
@@ -66,6 +71,17 @@ git clone git@github.com:nebius/mcp-server.git
 3. Restart Claude Desktop:
    - After restarting, click "Search and tools" icon in the bottom left corner of the input box
    - You should see Nebius MCP Server is available for use
+
+### Using VSCode Copilot
+
+0. Ensure you have the Copilot extension installed and are logged in
+
+1. Open the Command Palette (Cmd+Shift+P / Ctrl+Shift+P) and run **mcp: Add Server**
+
+2. Choose `stdio` and and enter the following command: `uv run --with fastmcp fastmcp run ~/.nebius/mcp-server/server.py`
+
+3. Open the Chat panel and select **Agent** mode
+    - You will now see the new MCP and its available tools by clicking the  :hammer_and_wrench:  button
 
 ## Tools
 
