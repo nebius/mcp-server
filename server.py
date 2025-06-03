@@ -5,8 +5,6 @@ import sys
 from mcp.server.fastmcp import Context, FastMCP
 from pydantic import Field
 
-from typing import List, Dict, Any
-
 from config import (
     TRANSPORT,
     INSTRUCTIONS,

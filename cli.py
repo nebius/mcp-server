@@ -7,6 +7,7 @@ from typing import TypedDict, List, Optional
 from config import (
     EXECUTION_TIMEOUT,
     NEBIUS_CLI_BIN,
+    NEBIUS_CLI_NAME,
     CLI_SYSTEM_SERVICES,
 )
 
@@ -122,11 +123,10 @@ async def execute_cli_command(command: str) -> CommandResult:
     logger.debug(f"Executing Nebius CLI command: {command}")
     try:
         cmd_parts = shlex.split(command)
-        try:
-            index = cmd_parts.index("nebius") # TODO: move to config and add validation
-            cmd_parts[index] = NEBIUS_CLI_BIN
-        except ValueError:
+        if cmd_parts[0] != NEBIUS_CLI_NAME:
+            logger.error(f"Command does not start with {NEBIUS_CLI_NAME}: {command}")
             return CommandResult(status="error", output="Wrong command")
+        cmd_parts[0] = NEBIUS_CLI_BIN
 
         process = await asyncio.create_subprocess_exec(
             *cmd_parts,
@@ -170,7 +170,7 @@ async def _get_full_docs() -> Optional[str]:
             stderr=asyncio.subprocess.PIPE,
         )
         try:
-            stdout, stderr = await asyncio.wait_for(proc.communicate(), 300)
+            stdout, stderr = await asyncio.wait_for(proc.communicate(), EXECUTION_TIMEOUT)
         except asyncio.TimeoutError:
             proc.kill()
             await proc.wait()
@@ -197,7 +197,7 @@ async def describe_service(service: str) -> ServiceHelpResult:
 
     for line in docs.splitlines():
         stripped = line.lstrip()
-        if stripped.startswith("nebius "): # TODO: move to config
+        if stripped.startswith(NEBIUS_CLI_NAME + " "):
             parts = stripped.split(maxsplit=2)
             if len(parts) >= 2:
                 capturing = (parts[1] == service)
