@@ -1,6 +1,12 @@
-# Nebius MCP Server
+# [Beta] Nebius MCP Server
 
 This service allows AI agents and assistants to fetch documentation for the Nebius services and execute Nebius CLI commands through the Model Context Protocol.
+
+## Disclaimer
+
+**Important**: This is a beta version. Use it carefully and at your own risk. There are no guarantees provided regarding stability, safety, or correctness.
+
+In the current implementation, the MCP server allows execution of any Nebius CLI commands, which may lead to destructive and insecure consequences. Always double-check the command suggested by the assistant before executing it. Never use the **Allow always** option for the **nebius_cli_execute** tool.
 
 ## Scenarios
 
@@ -18,14 +24,12 @@ There are 2 main scenarios for this MCP server:
     - Get me a list of the available compute platforms
     - Show the details about the compute instance by name: some-cool-instance
 
-## Disclaimer
-
-In the current implementation, the MCP server allows execution of any Nebius CLI commands, which may lead to destructive and insecure consequences. Always double-check the command suggested by the assistant before executing it. Never use the **Allow always** option for the **nebius_cli_execute** tool.
-
 ## Requirements
 
 - Python (version >=3.13) with [uv package manager](https://github.com/astral-sh/uv) installed
 - [Nebius CLI](https://docs.nebius.com/cli) (version >=0.12.65) installed locally with at least one profile configured
+
+On macOS, it’s recommended to install `uv` via Homebrew: `brew install uv`.
 
 ## Installation
 
@@ -38,7 +42,7 @@ cd ~/.nebius
 git clone git@github.com:nebius/mcp-server.git
 ```
 
-Use the next command to configure your MCP-compatible client:
+Use the next command to configure your MCP-compatible client (see examples below):
 ```bash
 uv run --with fastmcp fastmcp run ~/.nebius/mcp-server/server.py
 ```
