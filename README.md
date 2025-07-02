@@ -93,3 +93,9 @@ uv run --with fastmcp fastmcp run ~/.nebius/mcp-server/server.py
 - **nebius_available_services** - List of the available Nebius services  
 - **nebius_cli_help** - Detailed help documentation for the Nebius CLI commands for the specified service
 - **nebius_cli_execute** - Generate and execute Nebius CLI command and return the result
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+Copyright (c) 2025 Nebius B.V.
