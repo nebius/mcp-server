@@ -4,7 +4,6 @@ import sys
 
 from mcp.server.fastmcp import Context, FastMCP
 from pydantic import Field
-
 from config import (
     TRANSPORT,
     INSTRUCTIONS,
@@ -12,6 +11,7 @@ from config import (
 
 from cli import (
     ServiceHelpResult,
+    ServiceDescription,
     CommandResult,
     CommandExecutionError,
     check_cli_installed,
@@ -51,24 +51,28 @@ async def nebius_profiles(ctx: Context | None = None) -> dict:
     return await get_profiles()
 
 @mcp.tool()
-async def nebius_available_services(ctx: Context | None = None) -> list[str]:
+async def nebius_available_services(
+    service_group: str | None = Field(default=None, description="Nebius service group (e.g., iam, msp)"),
+    ctx: Context | None = None
+) -> list[ServiceDescription]:
     """Get the available Nebius services.
 
-    Retrieves a list of available Nebius services.
+    Retrieves a list of available Nebius services and service groups.
+    If service_group is specified - returns services in this group.
 
     Returns:
-        List with available services
+        List of ServiceDescription with available services and service groups
     """
-    return await get_available_services()
+    return await get_available_services(service_group)
 
 @mcp.tool()
 async def nebius_cli_help(
-    service: str = Field(description="Nebius service (e.g., applications, audit, compute, iam, mk8s)"),
+    service: str = Field(description="Nebius service (e.g., applications, audit, compute, iam audit, msp ik8s)"),
     ctx: Context | None = None
 ) -> ServiceHelpResult:
     """Get the Nebius CLI command documentation for the specified service.
 
-    Retrieves the help documentation for a specified Nebius service.
+    Retrieves the help documentation for the specified Nebius service.
 
     Returns:
         CommandHelpResult containing the proper documentation for the service
@@ -102,7 +106,7 @@ async def nebius_cli_execute(
     you should check if it exists using the nebius_profiles tool.
 
     You should NEVER specify --parent-id flag for the command unless the user has explicitly mentioned parent-id value.
-    
+
     Examples:
     - user asks: "provide me a list of storage buckets using testing profile"
       generated command: "nebius storage bucket list --profile testing"
