@@ -9,6 +9,7 @@ from config import (
     NEBIUS_CLI_BIN,
     NEBIUS_CLI_NAME,
     CLI_SYSTEM_SERVICES,
+    CLI_SERVICE_GROUPS,
 )
 
 logger = logging.getLogger(__name__)
@@ -17,6 +18,11 @@ class CommandHelpResult(TypedDict):
     """Type definition for the command help results."""
 
     help_text: str
+
+class ServiceDescription(TypedDict):
+    """Type definition for service and service groups descriptions."""
+    name: str
+    is_service_group: bool = False
 
 class ServiceHelpResult(TypedDict):
     """Type definition for the service help results."""
@@ -58,7 +64,7 @@ async def get_profiles() -> dict:
         if process.returncode != 0:
             logger.error(f"CLI error: {stderr.decode().strip()}")
             return {}
-        
+
         output = stdout.decode().strip()
         profiles = {}
 
@@ -85,10 +91,15 @@ async def get_profiles() -> dict:
         logger.exception("Failed to get CLI profiles")
         return {}
 
-async def get_available_services() -> list[str]:
-    logger.info("Getting available services")
-    try:
+async def get_available_services(service_group: Optional[str] = None) -> list[ServiceDescription]:
+    if service_group:
+        cmd_parts = [NEBIUS_CLI_BIN, "help", service_group]
+        logger.info("Getting available services in service group: %s", service_group)
+    else:
         cmd_parts = [NEBIUS_CLI_BIN, "--help"]
+        logger.info("Getting available root services and service groups")
+
+    try:
         process = await asyncio.create_subprocess_exec(
             *cmd_parts,
             stdout=asyncio.subprocess.PIPE,
@@ -103,7 +114,7 @@ async def get_available_services() -> list[str]:
 
         match = re.search(
             r"^Available Commands:\n"
-            r"((?:^[ \t]+.+\n)+)",
+            r"((?:^(?:[ \t]+.+\n|\n))+)",
             help_text,
             flags=re.MULTILINE,
         )
@@ -112,9 +123,23 @@ async def get_available_services() -> list[str]:
             return []
 
         block = match.group(1)
-        cmds = [line.strip().split()[0] for line in block.splitlines()]
-        return [cmd for cmd in cmds if cmd not in CLI_SYSTEM_SERVICES]
-    
+        cmds = []
+        for line in block.splitlines():
+            if re.match(r"^[ \t]{1,2}\w+", line):
+                cmds.append(line.strip().split()[0])
+
+        if service_group:
+            return [
+                ServiceDescription(name=f"{service_group} {cmd}", is_service_group=False)
+                for cmd in cmds
+            ]
+        else:
+            return [
+                ServiceDescription(name=cmd, is_service_group=(cmd in CLI_SERVICE_GROUPS))
+                for cmd in cmds
+                if cmd not in CLI_SYSTEM_SERVICES
+            ]
+
     except Exception:
         logger.exception("Failed to get available services")
         return []
@@ -154,10 +179,10 @@ async def execute_cli_command(command: str) -> CommandResult:
             return CommandResult(status="error", output=stderr_str or "Command failed with no error output")
 
         return CommandResult(status="success", output=stdout_str)
-    
+
     except asyncio.CancelledError:
         raise
-    
+
     except Exception as e:
         raise CommandExecutionError(f"Failed to execute command: {str(e)}") from e
 
@@ -188,19 +213,25 @@ async def _get_full_docs() -> Optional[str]:
     return stdout.decode(errors="replace")
 
 async def describe_service(service: str) -> ServiceHelpResult:
+    if service in CLI_SERVICE_GROUPS:
+        return ServiceHelpResult(
+            help_text=f"{service} is a service group. Please specify a service within this group."
+        )
+
     docs = await _get_full_docs()
     if docs is None:
         return ServiceHelpResult(help_text="")
 
     out_lines: List[str] = []
     capturing = False
+    service_parts = service.split()
 
     for line in docs.splitlines():
         stripped = line.lstrip()
         if stripped.startswith(NEBIUS_CLI_NAME + " "):
-            parts = stripped.split(maxsplit=2)
+            parts = stripped.split()
             if len(parts) >= 2:
-                capturing = (parts[1] == service)
+                capturing = (parts[1:len(service_parts)+1] == service_parts)
             else:
                 capturing = False
 
