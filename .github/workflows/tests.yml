@@ -1,11 +1,31 @@
-name: Initialize GitHub Actions
+name: Run tests on PR
 
 on:
   workflow_dispatch: {}
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  noop:
+  test:
     runs-on: ubuntu-latest
+
     steps:
-      - name: noop
-        run: echo "GitHub Actions initialized!"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          activate-environment: true
+
+      - name: Run tests
+        run: uv run --with pytest --with pytest-asyncio pytest test_tools.py

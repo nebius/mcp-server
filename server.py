@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import sys
+from contextlib import asynccontextmanager
 
 from mcp.server.fastmcp import Context, FastMCP
 from pydantic import Field
@@ -30,12 +31,16 @@ def run_startup_checks():
         sys.exit(1)
     logger.info("Nebius CLI is installed and available.")
 
-run_startup_checks()
+@asynccontextmanager
+async def app_lifespan(server: FastMCP):
+    run_startup_checks()
+    yield
 
 mcp = FastMCP(
     "Nebius MCP Server",
     instructions=INSTRUCTIONS,
     capabilities={"resources": {}},
+    lifespan=app_lifespan,
 )
 
 @mcp.tool()
