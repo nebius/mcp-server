@@ -67,7 +67,7 @@ async def nebius_available_services(
 
 @mcp.tool()
 async def nebius_cli_help(
-    service: str = Field(description="Nebius service (e.g., applications, audit, compute, iam audit, msp ik8s)"),
+    service: str = Field(description="Nebius service (e.g., applications, audit, compute, iam project, msp mlflow)"),
     ctx: Context | None = None
 ) -> ServiceHelpResult:
     """Get the Nebius CLI command documentation for the specified service.
