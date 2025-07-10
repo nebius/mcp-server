@@ -39,7 +39,7 @@ mcp = FastMCP(
 )
 
 @mcp.tool()
-async def nebius_profiles(ctx: Context | None = None) -> dict:
+async def nebius_profiles() -> dict:
     """Get the available Nebius CLI profiles.
 
     Retrieves a list of available Nebius profile names from the
@@ -52,8 +52,7 @@ async def nebius_profiles(ctx: Context | None = None) -> dict:
 
 @mcp.tool()
 async def nebius_available_services(
-    service_group: str | None = Field(default=None, description="Nebius service group (e.g., iam, msp)"),
-    ctx: Context | None = None
+    service_group: str | None = Field(default=None, description="Nebius service group (e.g., iam, msp)")
 ) -> list[ServiceDescription]:
     """Get the available Nebius services.
 
@@ -72,6 +71,8 @@ async def nebius_cli_help(
 ) -> ServiceHelpResult:
     """Get the Nebius CLI command documentation for the specified service.
 
+    You should ALWAYS run nebius_available_services tool to list services and service groups
+    before getting specific command documentation.
     Retrieves the help documentation for the specified Nebius service.
 
     Returns:

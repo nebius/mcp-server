@@ -47,6 +47,12 @@ Use the next command to configure your MCP-compatible client (see examples below
 uv run --with fastmcp fastmcp run ~/.nebius/mcp-server/server.py
 ```
 
+### Restricted actions and safe mode
+
+For safety reasons Nebius MCP server **always forbids** execution of any commands that either accept tokens or access keys as an argument or return them as a result.
+
+**Safe mode**: by default MCP server also does not allow to execute commands that can make "update", "delete" and other commands that can make potentially dangerous changes. We don't recommend changing the default behavior. However it can be controlled using the `SAFE_MODE=true|false` environment variable for the MCP server.
+
 ### Using Claude Desktop
 
 0. Install Claude Desktop: https://claude.ai/download
@@ -66,7 +72,8 @@ uv run --with fastmcp fastmcp run ~/.nebius/mcp-server/server.py
                     "fastmcp",
                     "run",
                     "~/.nebius/mcp-server/server.py"
-                ]
+                ],
+                "env": {}
             }
         }
     }
@@ -90,7 +97,7 @@ uv run --with fastmcp fastmcp run ~/.nebius/mcp-server/server.py
 ## Tools
 
 - **nebius_profiles** - Information about configured Nebius CLI profiles
-- **nebius_available_services** - List of the available Nebius services  
+- **nebius_available_services** - List of the available Nebius services
 - **nebius_cli_help** - Detailed help documentation for the Nebius CLI commands for the specified service
 - **nebius_cli_execute** - Generate and execute Nebius CLI command and return the result
 

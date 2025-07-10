@@ -8,8 +8,13 @@ from config import (
     EXECUTION_TIMEOUT,
     NEBIUS_CLI_BIN,
     NEBIUS_CLI_NAME,
+    SAFE_MODE,
     CLI_SYSTEM_SERVICES,
     CLI_SERVICE_GROUPS,
+    CLI_FORBIDDEN_COMMANDS,
+    CLI_FORBIDDEN_ERROR,
+    CLI_UNSAFE_COMMANDS,
+    CLI_UNSAFE_ERROR,
 )
 
 logger = logging.getLogger(__name__)
@@ -146,12 +151,31 @@ async def get_available_services(service_group: Optional[str] = None) -> list[Se
 
 async def execute_cli_command(command: str) -> CommandResult:
     logger.debug(f"Executing Nebius CLI command: {command}")
+
     try:
         cmd_parts = shlex.split(command)
         if cmd_parts[0] != NEBIUS_CLI_NAME:
             logger.error(f"Command does not start with {NEBIUS_CLI_NAME}: {command}")
             return CommandResult(status="error", output="Wrong command")
         cmd_parts[0] = NEBIUS_CLI_BIN
+
+        forbidden_parts = [x for x in cmd_parts[1:] if x in CLI_FORBIDDEN_COMMANDS]
+        if forbidden_parts:
+            forbidden_parts = ", ".join(forbidden_parts)
+            logger.error("The command contains forbidden parts: %s", forbidden_parts)
+            return CommandResult(
+                status="error",
+                output=f"{CLI_FORBIDDEN_ERROR}: {forbidden_parts}, provide manual instructions instead."
+            )
+
+        unsafe_parts = [x for x in cmd_parts[1:] if x in CLI_UNSAFE_COMMANDS]
+        if SAFE_MODE and unsafe_parts:
+            unsafe_parts = ", ".join(unsafe_parts)
+            logger.error("Safe mode is on and the command contains unsafe parts: %s", unsafe_parts)
+            return CommandResult(
+                status="error",
+                output=f"{CLI_UNSAFE_ERROR}: {unsafe_parts}, provide manual instructions instead."
+            )
 
         process = await asyncio.create_subprocess_exec(
             *cmd_parts,
