@@ -25,15 +25,15 @@ from cli import (
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", handlers=[logging.StreamHandler(sys.stderr)])
 logger = logging.getLogger("nebius-mcp-server")
 
-def run_startup_checks():
-    if not asyncio.run(check_cli_installed()):
+async def run_startup_checks():
+    if not await check_cli_installed():
         logger.error("Nebius CLI is not installed. Please install Nebius CLI or provider executable via NEBIUS_CLI_BIN env variable.")
         sys.exit(1)
     logger.info("Nebius CLI is installed and available.")
 
 @asynccontextmanager
 async def app_lifespan(server: FastMCP):
-    run_startup_checks()
+    await run_startup_checks()
     yield
 
 mcp = FastMCP(
