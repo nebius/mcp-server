@@ -27,5 +27,11 @@ jobs:
         with:
           activate-environment: true
 
-      - name: Run tests
+      - name: Run tools tests
         run: uv run --with pytest --with pytest-asyncio pytest test_tools.py
+
+      - name: Install nebius CLI
+        run: curl -sSL https://storage.eu-north1.nebius.cloud/cli/install.sh | bash
+
+      - name: Run server tests
+        run: uv run --with pytest --with pytest-asyncio pytest test_server.py
