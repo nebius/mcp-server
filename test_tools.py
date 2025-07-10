@@ -10,8 +10,14 @@ import pytest
 
 from pydantic import validate_call
 
-import config
-from config import NEBIUS_CLI_BIN, NEBIUS_CLI_NAME
+from config import (
+  NEBIUS_CLI_BIN,
+  NEBIUS_CLI_NAME,
+  CLI_FORBIDDEN_COMMANDS,
+  CLI_FORBIDDEN_ERROR,
+  CLI_UNSAFE_COMMANDS,
+  CLI_UNSAFE_ERROR,
+)
 from server import (
     nebius_profiles,
     nebius_available_services,
@@ -256,6 +262,7 @@ async def test_nebius_cli_execute():
     with patch('asyncio.create_subprocess_exec', return_value=cli_process) as cli_mock:
         result = await nebius_cli_execute(" ".join(["wrong_command", *command]))
         assert result == dict(output="Wrong command", status="error")
+        cli_mock.assert_not_called()
 
     test_timeout = 0.1
     with patch('asyncio.create_subprocess_exec', return_value=cli_process) as cli_mock, \
@@ -279,3 +286,49 @@ async def test_nebius_cli_execute():
         cli_process.kill.assert_called_once()
         output = f'Command execution error: Failed to execute command: Command timed out after {test_timeout} seconds'
         assert result == dict(status="error", output=output)
+
+    for cmd in CLI_UNSAFE_COMMANDS:
+        cli_process = AsyncMock()
+        cli_process.communicate.return_value = (b'', test_output)
+        cli_process.returncode = 1
+
+        with patch('asyncio.create_subprocess_exec', return_value=cli_process) as cli_mock, \
+                patch('cli.SAFE_MODE', True):
+            result = await nebius_cli_execute(" ".join([NEBIUS_CLI_NAME, cmd]))
+            expected_error = f"{CLI_UNSAFE_ERROR}: {cmd}, provide manual instructions instead."
+            assert result == dict(output=expected_error, status="error")
+            cli_mock.assert_not_called()
+
+        cli_process = AsyncMock()
+        cli_process.communicate.return_value = (test_output, b'')
+        cli_process.returncode = 0
+
+        with patch('asyncio.create_subprocess_exec', return_value=cli_process) as cli_mock, \
+                patch('cli.SAFE_MODE', False):
+            result = await nebius_cli_execute(" ".join([NEBIUS_CLI_NAME, cmd]))
+            expected_error = f"{CLI_UNSAFE_ERROR}: {cmd}"
+            assert result == dict(status="success", output=test_output.decode())
+            cli_mock.assert_called_once_with(
+                NEBIUS_CLI_BIN, cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+
+    for cmd in CLI_FORBIDDEN_COMMANDS:
+        cli_process = AsyncMock()
+        cli_process.communicate.return_value = (test_output, b'')
+        cli_process.returncode = 0
+
+        with patch('asyncio.create_subprocess_exec', return_value=cli_process) as cli_mock, \
+                patch('cli.SAFE_MODE', True):
+            result = await nebius_cli_execute(" ".join([NEBIUS_CLI_NAME, cmd]))
+            expected_error = f"{CLI_FORBIDDEN_ERROR}: {cmd}, provide manual instructions instead."
+            assert result == dict(output=expected_error, status="error")
+            cli_mock.assert_not_called()
+
+        with patch('asyncio.create_subprocess_exec', return_value=cli_process) as cli_mock, \
+                patch('cli.SAFE_MODE', False):
+            result = await nebius_cli_execute(" ".join([NEBIUS_CLI_NAME, cmd]))
+            expected_error = f"{CLI_FORBIDDEN_ERROR}: {cmd}, provide manual instructions instead."
+            assert result == dict(output=expected_error, status="error")
+            cli_mock.assert_not_called()
