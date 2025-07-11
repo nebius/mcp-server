@@ -2,7 +2,7 @@ import asyncio
 import logging
 import shlex
 import re
-from typing import TypedDict, List, Optional
+from typing import TypedDict, List
 
 from config import (
     EXECUTION_TIMEOUT,
@@ -25,9 +25,10 @@ class CommandHelpResult(TypedDict):
     help_text: str
 
 class ServiceDescription(TypedDict):
-    """Type definition for service and service groups descriptions."""
+    """Type definition for service description."""
     name: str
-    is_service_group: bool = False
+    description: str | None
+    nested_services: list['ServiceDescription']
 
 class ServiceHelpResult(TypedDict):
     """Type definition for the service help results."""
@@ -96,13 +97,15 @@ async def get_profiles() -> dict:
         logger.exception("Failed to get CLI profiles")
         return {}
 
-async def get_available_services(service_group: Optional[str] = None) -> list[ServiceDescription]:
-    if service_group:
-        cmd_parts = [NEBIUS_CLI_BIN, "help", service_group]
-        logger.info("Getting available services in service group: %s", service_group)
+async def get_available_services() -> list[ServiceDescription]:
+    logger.info("Getting available root services")
+    return await _get_available_services()
+
+async def _get_available_services(command: str | None = None) -> list[ServiceDescription]:
+    if command:
+        cmd_parts = [NEBIUS_CLI_BIN, "help", command]
     else:
         cmd_parts = [NEBIUS_CLI_BIN, "--help"]
-        logger.info("Getting available root services and service groups")
 
     try:
         process = await asyncio.create_subprocess_exec(
@@ -117,37 +120,46 @@ async def get_available_services(service_group: Optional[str] = None) -> list[Se
             logger.error(f"CLI error: {stderr.decode().strip()}")
             return []
 
-        match = re.search(
-            r"^Available Commands:\n"
-            r"((?:^(?:[ \t]+.+\n|\n))+)",
-            help_text,
-            flags=re.MULTILINE,
-        )
-        if not match:
-            logger.error(f"CLI unexpected output: {help_text.strip()}")
-            return []
-
-        block = match.group(1)
-        cmds = []
-        for line in block.splitlines():
-            if re.match(r"^[ \t]{1,2}\w+", line):
-                cmds.append(line.strip().split()[0])
-
-        if service_group:
-            return [
-                ServiceDescription(name=f"{service_group} {cmd}", is_service_group=False)
-                for cmd in cmds
-            ]
-        else:
-            return [
-                ServiceDescription(name=cmd, is_service_group=(cmd in CLI_SERVICE_GROUPS))
-                for cmd in cmds
-                if cmd not in CLI_SYSTEM_SERVICES
-            ]
+        return await _parse_available_services(help_text, command)
 
     except Exception:
         logger.exception("Failed to get available services")
         return []
+
+async def _parse_available_services(help_text: str, parent_name: str | None = None) -> list[ServiceDescription]:
+    match = re.search(
+        r"^Available Commands:\n"
+        r"((?:^(?:[ \t]+.+\n|\n))+)",
+        help_text,
+        flags=re.MULTILINE,
+    )
+    if not match:
+        logger.error(f"CLI unexpected output: {help_text.strip()}")
+        return []
+
+    block = match.group(1)
+    cmds = []
+    for line in block.splitlines():
+        if re.match(r"^[ \t]{1,2}\w+", line):
+            chunks = line.strip().split()
+
+            name = chunks[0]
+            if name in CLI_SYSTEM_SERVICES:
+                continue
+
+            name = f'{parent_name} {name}' if parent_name else name
+            description = " ".join(chunks[1:]).strip()
+            if not description:
+                description = None
+
+            services = []
+            if name in CLI_SERVICE_GROUPS:
+                services = await _get_available_services(name)
+
+            cmds.append(ServiceDescription(name=name, description=description, nested_services=services))
+
+    return cmds
+
 
 async def execute_cli_command(command: str) -> CommandResult:
     logger.debug(f"Executing Nebius CLI command: {command}")
@@ -210,7 +222,7 @@ async def execute_cli_command(command: str) -> CommandResult:
     except Exception as e:
         raise CommandExecutionError(f"Failed to execute command: {str(e)}") from e
 
-async def _get_full_docs() -> Optional[str]:
+async def _get_full_docs() -> str | None:
     try:
         cmd = [NEBIUS_CLI_BIN, "docs", "mcp"]
         proc = await asyncio.create_subprocess_exec(

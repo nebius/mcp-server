@@ -32,6 +32,28 @@ async def receive(proc: asyncio.subprocess.Process) -> str:
     return json.loads(line.decode())
 
 
+AVAILABLE_TOOLS = [
+    {
+        "name": "nebius_profiles",
+        "test": True,
+        "input": {}
+    },
+    {
+        "name": "nebius_available_services",
+        "test": True,
+        "input": {},
+    },
+    {
+        "name": "nebius_cli_help",
+        "test": True,
+        "input": {"service": "applications"},
+    },
+    {
+        "name": "nebius_cli_execute",
+        "test": False,
+    },
+]
+
 @pytest.mark.asyncio
 async def test_all_tools():
     proc = await asyncio.create_subprocess_exec(
@@ -63,25 +85,19 @@ async def test_all_tools():
     msg_id += 1
     await send(proc, {"jsonrpc": "2.0", "id": msg_id, "method": "tools/list", "params": {}})
     response = await receive(proc)
-    assert len(response["result"]["tools"]) == 4
+    tools = response["result"]["tools"]
+    assert len(tools) == len(AVAILABLE_TOOLS)
+    expected_names = set([t["name"] for t in AVAILABLE_TOOLS])
+    response_names = set([t["name"] for t in tools])
+    assert response_names == expected_names
 
-    # call nebius_profiles
-    msg_id += 1
-    await send(proc, {"jsonrpc": "2.0", "id": msg_id, "method":"tools/call", "params": {"name": "nebius_profiles", "arguments": {}}})
-    response = await receive(proc)
-    assert not response["result"]["isError"]
-
-    # call nebius_available_services
-    msg_id += 1
-    await send(proc, {"jsonrpc": "2.0", "id": msg_id, "method":"tools/call", "params": {"name": "nebius_available_services", "arguments": {}}})
-    response = await receive(proc)
-    assert not response["result"]["isError"]
-
-    # call nebius_cli_help
-    msg_id += 1
-    await send(proc, {"jsonrpc": "2.0", "id": msg_id, "method":"tools/call", "params": {"name": "nebius_cli_help", "arguments": {"service": "applications"}}})
-    response = await receive(proc)
-    assert not response["result"]["isError"]
+    for tool in AVAILABLE_TOOLS:
+        if not tool["test"]:
+            continue
+        msg_id += 1
+        await send(proc, {"jsonrpc": "2.0", "id": msg_id, "method":"tools/call", "params": {"name": tool["name"], "arguments": tool["input"]}})
+        response = await receive(proc)
+        assert not response["result"]["isError"]
 
     proc.terminate()
     await proc.wait()
