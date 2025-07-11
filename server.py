@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import sys
 from contextlib import asynccontextmanager
@@ -56,18 +55,16 @@ async def nebius_profiles() -> dict:
     return await get_profiles()
 
 @mcp.tool()
-async def nebius_available_services(
-    service_group: str | None = Field(default=None, description="Nebius service group (e.g., iam, msp)")
-) -> list[ServiceDescription]:
+async def nebius_available_services() -> list[ServiceDescription]:
     """Get the available Nebius services.
 
-    Retrieves a list of available Nebius services and service groups.
+    Retrieves a list of available Nebius services including nested services.
     If service_group is specified - returns services in this group.
 
     Returns:
         List of ServiceDescription with available services and service groups
     """
-    return await get_available_services(service_group)
+    return await get_available_services()
 
 @mcp.tool()
 async def nebius_cli_help(

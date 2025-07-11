@@ -5,7 +5,7 @@ To run tests use uv + pytest command in terminal:
 '''
 
 import asyncio
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, Mock, call, patch
 import pytest
 
 from pydantic import validate_call
@@ -36,7 +36,7 @@ TEST_HELP_ALL = b'''Usage:
 Available Commands:
   applications
   help         Help about any command
-  iam
+  iam          All service related to IAM.
 
 Flags:
       --color [=<true|false>] (bool)      Enable colored output.
@@ -136,39 +136,42 @@ async def test_nebius_profiles():
 
 @pytest.mark.asyncio
 async def test_nebius_available_services():
-    cli_process = AsyncMock()
-    cli_process.communicate.return_value = (TEST_HELP_ALL, b'')
-    cli_process.returncode = 0
+    async def subsequent_calls(*args, **kwargs):
+        cli_process = AsyncMock()
+        cli_process.returncode = 0
+        cli_process.communicate.return_value = (TEST_HELP_ALL, b'')
+        if args == (NEBIUS_CLI_BIN, "help", "iam"):
+            cli_process.communicate.return_value = (TEST_HELP_GROUP, b'')
+        return cli_process
 
-    with patch('asyncio.create_subprocess_exec', return_value=cli_process) as cli_mock:
+    with patch('asyncio.create_subprocess_exec') as cli_mock:
+        cli_mock.side_effect = subsequent_calls
         result = await validate_call(nebius_available_services)()
-        cli_mock.assert_called_once_with(
-            NEBIUS_CLI_BIN, "--help",
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
-        )
+        cli_mock.assert_has_calls([
+            call.create_subprocess_exec(
+                NEBIUS_CLI_BIN, "--help",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            ),
+            call.create_subprocess_exec(
+                NEBIUS_CLI_BIN, "help", "iam",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+        ], any_order=False)
 
         assert result == [
-            {'is_service_group': False, 'name': 'applications'},
-            {'is_service_group': True, 'name': 'iam'},
+            {'name': 'applications', 'description': None, 'nested_services': []},
+            {'name': 'iam', 'description': "All service related to IAM.", "nested_services": [
+                {
+                    'name': 'iam access-key',
+                    'description': '[deprecated: supported until 2025-09-01] Access keys API v1 is deprecated, use the v2 version instead. Keys produced by API v1 are available using v2.',
+                    'nested_services': []
+                },
+                {'name': 'iam access-permit', 'description': None, 'nested_services': []}
+            ]},
         ]
 
-    cli_process = AsyncMock()
-    cli_process.communicate.return_value = (TEST_HELP_GROUP, b'')
-    cli_process.returncode = 0
-
-    with patch('asyncio.create_subprocess_exec', return_value=cli_process) as cli_mock:
-        result = await validate_call(nebius_available_services)(service_group="iam")
-        cli_mock.assert_called_once_with(
-            NEBIUS_CLI_BIN, "help", "iam",
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
-        )
-
-        assert result == [
-            {'is_service_group': False, 'name': 'iam access-key'},
-            {'is_service_group': False, 'name': 'iam access-permit'},
-        ]
 
 @pytest.mark.asyncio
 async def test_nebius_cli_help():

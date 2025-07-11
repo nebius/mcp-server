@@ -24,15 +24,17 @@ CLI_UNSAFE_ERROR = "MCP server is in safe mode and the command contains unsafe w
 INSTRUCTIONS = f"""
 Nebius MCP Server provides an interface to the Nebius CLI with guidance.
 Don't rely on the existing knowledge about the Nebius services.
+You should always run nebius_available_services tool to list all available services.
 You should always run nebius_cli_help tool for getting documentation for service specified by user before generating the command to execute.
-- Use the nebius_profiles tool to get Nebius CLI available profiles
-- Use the nebius_available_services tool to get all available Nebius services
-- Use the nebius_available_services tool with service_group parameter to get available Nebius services in the service group
-- Use the nebius_cli_help tool to get Nebius CLI documentation for specified service. Never call this tool with a service group name
-- Use the nebius_cli_execute tool to run Nebius CLI command based on the documentation and return it's output
-- **NEVER** use nebius_cli_execute to send or obtain any token or secret key values, instead provide full command and clear usage instructions.
+- Use the nebius_profiles tool to get Nebius CLI available profiles.
+- Use the nebius_available_services tool to get all available Nebius services.
+- Always use the nebius_available_services tool **before first call** to nebius_cli_help.
+- Use the nebius_cli_help tool to get Nebius CLI documentation for specified service.
+- Always use the nebius_cli_help tool **before first call** to nebius_cli_execute to build command correctly.
+- Use the nebius_cli_execute tool to run Nebius CLI command based on the documentation and return it's output.
+- **NEVER** use nebius_cli_execute to obtain any tokens, instead reply with full command and explanation.
 If server responds with "{CLI_FORBIDDEN_ERROR}":
-- Do **not** retry the command with nebius_cli_execute
+- Do **not** retry the command with nebius_cli_execute.
     - Instead instruct user to run it manually.
 """
 
