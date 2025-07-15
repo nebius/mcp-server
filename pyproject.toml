@@ -9,6 +9,4 @@ authors = [{ name = "Ivan Kornilov" }]
 dependencies = [
     "fastmcp>=0.4.1",
     "mcp[cli]>=1.0.0",
-    "boto3>=1.34.0",
-    "pyyaml>=6.0.0",
 ]
