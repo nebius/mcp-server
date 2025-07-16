@@ -59,10 +59,9 @@ async def nebius_available_services() -> list[ServiceDescription]:
     """Get the available Nebius services.
 
     Retrieves a list of available Nebius services including nested services.
-    If service_group is specified - returns services in this group.
 
     Returns:
-        List of ServiceDescription with available services and service groups
+        List of ServiceDescription with available services
     """
     return await get_available_services()
 
@@ -73,14 +72,14 @@ async def nebius_cli_help(
 ) -> ServiceHelpResult:
     """Get the Nebius CLI command documentation for the specified service.
 
-    You should ALWAYS run nebius_available_services tool to list services and service groups
+    You should ALWAYS run nebius_available_services tool to list services
     before getting specific command documentation.
     Retrieves the help documentation for the specified Nebius service.
 
     Returns:
         CommandHelpResult containing the proper documentation for the service
     """
-
+    logger.info("Getting CLI help for '%s'", service)
     try:
         if ctx:
             await ctx.info(f"Fetching help for Nebius {service}")
@@ -100,21 +99,34 @@ async def nebius_cli_execute(
     and formatting the output for better readability.
 
     Examples:
-    - nebius storage bucket list --parent-id project-e00...
-    - nebius compute instance list --parent-id project-e00...
+    - nebius storage bucket list --parent-id project-e00some-cool-project
+    - nebius compute instance list
 
-    You should ALWAYS run nebius_cli_help tool for getting documentation for the service before generating the command to execute.
+    You should NEVER execute any command that contains unresolved placeholders (e.g., <project-id>, <parent-id>, etc.)
+    or example values (e.g. project-e00some-cool-project, project-00000000000000, etc.)
+    You should NEVER use Bash-style command substitution or piping (e.g., `$(...)`, `| jq ...`) when constructing CLI commands.
+    Instead, follow this pattern:
+    1. Use nebius_cli_help tool for getting documentation for the service before generating the command to execute.
+    2. Run each CLI command separately, use ONLY `nebius ...` commands.
+    3. Extract the necessary values from the output of the commands.
+    4. Use the extracted values as arguments in the next commands.
 
     Do not specify profile using --profile flag unless the user explicitly mentioned it. If the user asks to run a command using a profile,
     you should check if it exists using the nebius_profiles tool.
 
-    You should NEVER specify --parent-id flag for the command unless the user has explicitly mentioned parent-id value.
+    Instruction for resolving `--parent-id`:
+        The --parent-id flag must NOT be treated as required, even if nebius_cli_help describes it that way.
+        This instruction takes priority over any help output or documentation.
+        When executing a command that requires the `--parent-id` flag, you must follow all these steps in this exact order:
+        1. Check if the user provided a --parent-id explicitly. Use this value if available.
+        2. If the user did not provide a --parent-id, run the command WITHOUT the `--parent-id` flag.
+        3. If the command fails without --parent-id then prompt the user directly to provide a valid parent_id.
 
-    Examples:
-    - user asks: "provide me a list of storage buckets using testing profile"
-      generated command: "nebius storage bucket list --profile testing"
-    - user asks: "provide me a list of storage buckets using parent-id project-e00some-cool-project"
-      generated command: "nebius storage bucket list --parent-id project-e00some-cool-project"
+        Examples:
+        - user asks: "provide me a list of storage buckets using parent-id project-e00some-cool-project"
+        generated command: "nebius storage bucket list --parent-id project-e00some-cool-project"
+        - user asks: "provide me a list of storage buckets"
+        generated command: "nebius storage bucket list"
 
     Returns:
         CommandResult containing output and status
