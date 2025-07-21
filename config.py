@@ -7,7 +7,7 @@ NEBIUS_CLI_NAME = os.environ.get("NEBIUS_CLI_NAME", "nebius")
 SAFE_MODE = os.environ.get("SAFE_MODE", "true").lower() == "true"
 
 CLI_SYSTEM_SERVICES = {"config", "profile", "help", "update", "version"}
-CLI_SERVICE_GROUPS = {"iam", "msp", "storage"}
+CLI_SERVICE_GROUPS = {"iam", "msp", "storage", "compute"}
 CLI_FORBIDDEN_COMMANDS = {
     "get-token",
     "get-access-token",
