@@ -101,6 +101,10 @@ For safety reasons Nebius MCP server **always forbids** execution of any command
 - **nebius_cli_help** - Detailed help documentation for the Nebius CLI commands for the specified service
 - **nebius_cli_execute** - Generate and execute Nebius CLI command and return the result
 
+## Trademarks
+
+"Model Context Protocol", "MCP", and the MCP logo are trademarks of Anthropic.
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
