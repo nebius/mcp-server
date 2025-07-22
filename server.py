@@ -46,8 +46,8 @@ mcp = FastMCP(
 async def nebius_profiles() -> dict:
     """Get the available Nebius CLI profiles.
 
-    Retrieves a list of available Nebius profile names from the
-    Nebius CLI configuration file.
+    Retrieves a list of available Nebius profile names from the Nebius CLI configuration file.
+    If the user does not explicitly mention profiles, do not call this tool under any circumstances.
 
     Returns:
         Dictionary with profiles information
@@ -59,10 +59,9 @@ async def nebius_available_services() -> list[ServiceDescription]:
     """Get the available Nebius services.
 
     Retrieves a list of available Nebius services including nested services.
-    If service_group is specified - returns services in this group.
 
     Returns:
-        List of ServiceDescription with available services and service groups
+        List of ServiceDescription with available services
     """
     return await get_available_services()
 
@@ -73,14 +72,22 @@ async def nebius_cli_help(
 ) -> ServiceHelpResult:
     """Get the Nebius CLI command documentation for the specified service.
 
-    You should ALWAYS run nebius_available_services tool to list services and service groups
-    before getting specific command documentation.
     Retrieves the help documentation for the specified Nebius service.
+
+    You should ALWAYS run nebius_available_services tool to list services before getting specific command documentation.
+    You must NEVER call this tool with a service that has nested sub-services (e.g., 'iam', 'storage').
+
+    Examples:
+    - Valid: service='applications'
+    - Valid: service='iam project'
+    - Valid: service='storage bucket'
+    - Invalid (returns error): service='storage'
+    - Invalid (returns error): service='iam'
 
     Returns:
         CommandHelpResult containing the proper documentation for the service
     """
-
+    logger.info("Getting CLI help for '%s'", service)
     try:
         if ctx:
             await ctx.info(f"Fetching help for Nebius {service}")
@@ -96,25 +103,35 @@ async def nebius_cli_execute(
 ) -> CommandResult:
     """Execute Nebius CLI command.
 
-    Validates, executes, and processes the results of an Nebius CLI command, providing proper profile and handling errors
+    Validates, executes, and processes the results of an Nebius CLI command, handling errors
     and formatting the output for better readability.
 
-    Examples:
-    - nebius storage bucket list --parent-id project-e00...
-    - nebius compute instance list --parent-id project-e00...
+    You MUST NEVER execute any command that includes bash-style command substitution or piping such as `$(...)`, `| jq ...`, etc.
 
-    You should ALWAYS run nebius_cli_help tool for getting documentation for the service before generating the command to execute.
+    Required Execution Pattern:
+    1. Use nebius_cli_help tool for getting documentation for the service before generating the command to execute.
+    2. Run each CLI command separately, use ONLY `nebius ...` commands.
+    3. Extract the necessary values from the output of the commands.
+    4. Use the extracted values as arguments in the next commands.
 
-    Do not specify profile using --profile flag unless the user explicitly mentioned it. If the user asks to run a command using a profile,
-    you should check if it exists using the nebius_profiles tool.
+    Instruction for resolving `--parent-id`:
+        This instruction takes priority over any help output or documentation.
+        The `--parent-id` flag is required, but you CAN OMIT it and CLI will execute command using default.
+        When executing a command that requires the `--parent-id` flag, you must follow all these steps in this exact order:
+        1. Check if the **user provided** parent id explicitly. Use this value if available.
+        2. If not provided you **must omit** the flag: **run without** `--parent-id`.
+        3. Only if the command **fails without** flag then prompt the user directly to provide a valid --parent-id.
 
-    You should NEVER specify --parent-id flag for the command unless the user has explicitly mentioned parent-id value.
+    Examples (only valid when using user-provided or extracted values):
+    - User asks: "Provide me a list of storage buckets using parent-id project-abc123"
+      → Correct command: "nebius storage bucket list --parent-id project-abc123"
+    - User asks: "Provide me a list of storage buckets"
+      → Correct command: "nebius storage bucket list"
+      → DO NOT use without value: "nebius storage bucket list --parent-id"
+      → DO NOT use placeholders: "nebius storage bucket list --parent-id <parent-id>"
+      → DO NOT invent values: "nebius storage bucket list --parent-id project-abc123"
 
-    Examples:
-    - user asks: "provide me a list of storage buckets using testing profile"
-      generated command: "nebius storage bucket list --profile testing"
-    - user asks: "provide me a list of storage buckets using parent-id project-e00some-cool-project"
-      generated command: "nebius storage bucket list --parent-id project-e00some-cool-project"
+    Never invent values like `project-example123`. Only use values provided by the user or retrieved from previous commands.
 
     Returns:
         CommandResult containing output and status

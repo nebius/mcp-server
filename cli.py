@@ -167,7 +167,7 @@ async def execute_cli_command(command: str) -> CommandResult:
     try:
         cmd_parts = shlex.split(command)
         if cmd_parts[0] != NEBIUS_CLI_NAME:
-            logger.error(f"Command does not start with {NEBIUS_CLI_NAME}: {command}")
+            logger.error(f"Command must start with {NEBIUS_CLI_NAME}, did you mean: {NEBIUS_CLI_NAME} {command}")
             return CommandResult(status="error", output="Wrong command")
         cmd_parts[0] = NEBIUS_CLI_BIN
 
