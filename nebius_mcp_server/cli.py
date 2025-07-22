@@ -4,7 +4,7 @@ import shlex
 import re
 from typing import TypedDict, List
 
-from config import (
+from nebius_mcp_server.config import (
     EXECUTION_TIMEOUT,
     NEBIUS_CLI_BIN,
     NEBIUS_CLI_NAME,
