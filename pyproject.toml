@@ -10,3 +10,21 @@ dependencies = [
     "fastmcp>=0.4.1",
     "mcp[cli]>=1.0.0",
 ]
+
+[dependency-groups]
+test = [
+    "pytest>=8.4.1",
+    "pytest-asyncio>=1.1.0",
+    "pytest-repeat>=0.9.4",
+]
+
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["nebius_mcp_server*"]
+
+[project.scripts]
+nebius-mcp-server = "nebius_mcp_server.main:main"

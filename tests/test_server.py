@@ -6,9 +6,16 @@ import pytest
 
 async def wait_until_ready(proc: asyncio.subprocess.Process, timeout: int=10):
     deadline = asyncio.get_event_loop().time() + timeout
+    lines = []
     while True:
         if proc.returncode is not None:
-            raise RuntimeError("server exited with code", proc.returncode)
+            try:
+                last_line = (await proc.stderr.read(10000)).decode().strip()
+                lines.append(last_line)
+            except Exception as e:
+                pass
+
+            raise RuntimeError("server exited with code", proc.returncode, "\n".join(lines))
         if asyncio.get_event_loop().time() > deadline:
             raise RuntimeError("Timeout waiting for server readiness")
 
@@ -17,6 +24,7 @@ async def wait_until_ready(proc: asyncio.subprocess.Process, timeout: int=10):
             continue
 
         decoded = line.decode().strip()
+        lines.append(decoded)
         if "Nebius CLI is installed and available." in decoded:
             break
 
@@ -57,7 +65,7 @@ AVAILABLE_TOOLS = [
 @pytest.mark.asyncio
 async def test_all_tools():
     proc = await asyncio.create_subprocess_exec(
-        'uv', 'run', '--active', '--with', 'fastmcp', 'fastmcp', 'run', 'server.py',
+        'uv', 'run', 'nebius_mcp_server/main.py',
         stdin=asyncio.subprocess.PIPE,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE

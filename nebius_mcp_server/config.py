@@ -1,8 +1,13 @@
 import os
+from pathlib import Path
 
 EXECUTION_TIMEOUT = int(os.environ.get("NEBIUS_MCP_TIMEOUT", "300"))
 TRANSPORT = os.environ.get("NEBIUS_MCP_TRANSPORT", "stdio")
-NEBIUS_CLI_BIN = os.environ.get("NEBIUS_CLI_BIN", os.getenv("HOME") + "/.nebius/bin/nebius")
+
+NEBIUS_CLI_BIN = os.environ.get("NEBIUS_CLI_BIN")
+if not NEBIUS_CLI_BIN:
+    NEBIUS_CLI_BIN = str(Path.home() / ".nebius" / "bin" / "nebius")
+
 NEBIUS_CLI_NAME = os.environ.get("NEBIUS_CLI_NAME", "nebius")
 SAFE_MODE = os.environ.get("SAFE_MODE", "true").lower() == "true"
 
