@@ -33,19 +33,14 @@ On macOS, it’s recommended to install `uv` via Homebrew: `brew install uv`.
 
 ## Installation
 
+Update to the latest version of Nebius CLI:
 ```bash
-// update to the latest version of Nebius CLI
 nebius update
 ```
 
 Use the next command to configure your MCP-compatible client (see examples below):
 ```bash
-uvx "nebius-mcp-server@git+https://github.com/nebius/mcp-server@main"
-```
-
-To remove cached version and upgrade to the latest - run this command:
-```bash
-uv cache clean nebius-mcp-server
+uvx --refresh-package nebius-mcp-server "nebius-mcp-server@git+https://github.com/nebius/mcp-server@main"
 ```
 
 ### Restricted actions and safe mode
@@ -67,6 +62,8 @@ For safety reasons Nebius MCP server **always forbids** execution of any command
             "Nebius MCP Server": {
                 "command": "uvx",
                 "args": [
+                    "--refresh-package",
+                    "nebius-mcp-server",
                     "nebius-mcp-server@git+https://github.com/nebius/mcp-server@main"
                 ],
                 "env": {}
@@ -85,7 +82,7 @@ For safety reasons Nebius MCP server **always forbids** execution of any command
 
 1. Open the Command Palette (Cmd+Shift+P / Ctrl+Shift+P) and run **mcp: Add Server**
 
-2. Choose `Command (stdio)` and enter the following command: `uvx "nebius-mcp-server@git+https://github.com/nebius/mcp-server@main"`
+2. Choose `Command (stdio)` and enter the following command: `uvx --refresh-package nebius-mcp-server "nebius-mcp-server@git+https://github.com/nebius/mcp-server@main"`
 
 3. Open the Chat panel and select **Agent** mode
     - You will now see the new MCP and its available tools by clicking the  :hammer_and_wrench:  button
