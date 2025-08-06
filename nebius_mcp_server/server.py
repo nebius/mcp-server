@@ -34,7 +34,6 @@ async def app_lifespan(server: FastMCP):
 mcp = FastMCP(
     "Nebius MCP Server",
     instructions=INSTRUCTIONS,
-    capabilities={"resources": {}},
     lifespan=app_lifespan,
 )
 
