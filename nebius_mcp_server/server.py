@@ -62,8 +62,8 @@ async def nebius_available_services() -> list[ServiceDescription]:
 
 @mcp.tool()
 async def nebius_cli_help(
+    ctx: Context,
     service: str = Field(description="Nebius service (e.g., applications, audit, compute, iam project, msp mlflow)"),
-    ctx: Context | None = None
 ) -> ServiceHelpResult:
     """Get the Nebius CLI command documentation for the specified service.
 
@@ -84,8 +84,7 @@ async def nebius_cli_help(
     """
     logger.info("Getting CLI help for '%s'", service)
     try:
-        if ctx:
-            await ctx.info(f"Fetching help for Nebius {service}")
+        await ctx.info(f"Fetching help for Nebius {service}")
         return await describe_service(service)
     except Exception as e:
         logger.error(f"Error in nebius_cli_help: {e}")
@@ -93,8 +92,8 @@ async def nebius_cli_help(
 
 @mcp.tool()
 async def nebius_cli_execute(
+    ctx: Context,
     command: str = Field(description="Complete Nebius CLI command to execute"),
-    ctx: Context | None = None,
 ) -> CommandResult:
     """Execute Nebius CLI command.
 
@@ -137,11 +136,9 @@ async def nebius_cli_execute(
         result = await execute_cli_command(command)
 
         if result["status"] == "success":
-            if ctx:
-                await ctx.info("Command executed successfully")
+            await ctx.info("Command executed successfully")
         else:
-            if ctx:
-                await ctx.warning("Command failed")
+            await ctx.warning("Command failed")
 
         return CommandResult(status=result["status"], output=result["output"])
     except CommandExecutionError as e:

@@ -36,8 +36,12 @@ async def send(proc: asyncio.subprocess.Process, msg: str) -> None:
 
 
 async def receive(proc: asyncio.subprocess.Process) -> str:
-    line = await proc.stdout.readline()
-    return json.loads(line.decode())
+    while True:
+        line = await proc.stdout.readline()
+        result = json.loads(line.decode())
+        if result.get('method', '') == 'notifications/message':
+            continue
+        return result
 
 
 AVAILABLE_TOOLS = [

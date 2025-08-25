@@ -186,21 +186,26 @@ async def test_nebius_cli_help():
     cli_process.returncode = 0
 
     with patch('asyncio.create_subprocess_exec', return_value=cli_process) as cli_mock:
-        result = await nebius_cli_help("applications")
+        ctx = AsyncMock()
+        result = await nebius_cli_help(ctx, "applications")
         cli_mock.assert_called_once_with(
             NEBIUS_CLI_BIN, "docs", "mcp",
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
         )
+        ctx.info.assert_called()
 
         assert result == dict(help_text=TEST_CLI_HELP_APPLICATIONS.strip())
 
     with patch('asyncio.create_subprocess_exec', return_value=cli_process) as cli_mock:
-        result = await nebius_cli_help("iam")
+        ctx = AsyncMock()
+        result = await nebius_cli_help(ctx, "iam")
         assert result == dict(help_text="iam is a service group. Please specify a service within this group.")
+        ctx.info.assert_called()
 
     with patch('asyncio.create_subprocess_exec', return_value=cli_process) as cli_mock:
-        result = await nebius_cli_help("iam access-permit")
+        ctx = AsyncMock()
+        result = await nebius_cli_help(ctx, "iam access-permit")
         cli_mock.assert_called_once_with(
             NEBIUS_CLI_BIN, "docs", "mcp",
             stdout=asyncio.subprocess.PIPE,
@@ -208,9 +213,11 @@ async def test_nebius_cli_help():
         )
 
         assert result == dict(help_text=TEST_CLI_HELP_IAM_ACCESS_PERMIT.strip())
+        ctx.info.assert_called()
 
     with patch('asyncio.create_subprocess_exec', return_value=cli_process) as cli_mock:
-        result = await nebius_cli_help("msp missing")
+        ctx = AsyncMock()
+        result = await nebius_cli_help(ctx, "msp missing")
         cli_mock.assert_called_once_with(
             NEBIUS_CLI_BIN, "docs", "mcp",
             stdout=asyncio.subprocess.PIPE,
@@ -218,6 +225,7 @@ async def test_nebius_cli_help():
         )
 
         assert result == dict(help_text="")
+        ctx.info.assert_called()
 
 @pytest.mark.asyncio
 async def test_nebius_cli_execute():
@@ -229,7 +237,8 @@ async def test_nebius_cli_execute():
     cli_process.returncode = 0
 
     with patch('asyncio.create_subprocess_exec', return_value=cli_process) as cli_mock:
-        result = await nebius_cli_execute(" ".join([NEBIUS_CLI_NAME, *command]))
+        ctx = AsyncMock()
+        result = await nebius_cli_execute(ctx, " ".join([NEBIUS_CLI_NAME, *command]))
         cli_mock.assert_called_once_with(
             NEBIUS_CLI_BIN, *command,
             stdout=asyncio.subprocess.PIPE,
@@ -237,11 +246,13 @@ async def test_nebius_cli_execute():
         )
 
         assert result == dict(status="success", output=test_output.decode())
+        ctx.info.assert_called()
 
     cli_process.communicate.return_value = (test_output, b'')
     cli_process.returncode = 1
     with patch('asyncio.create_subprocess_exec', return_value=cli_process) as cli_mock:
-        result = await nebius_cli_execute(" ".join([NEBIUS_CLI_NAME, *command]))
+        ctx = AsyncMock()
+        result = await nebius_cli_execute(ctx, " ".join([NEBIUS_CLI_NAME, *command]))
         cli_mock.assert_called_once_with(
             NEBIUS_CLI_BIN, *command,
             stdout=asyncio.subprocess.PIPE,
@@ -249,11 +260,13 @@ async def test_nebius_cli_execute():
         )
 
         assert result == dict(status="error", output='Command failed with no error output')
+        ctx.warning.assert_called()
 
     cli_process.communicate.return_value = (test_output, test_output)
     cli_process.returncode = 1
     with patch('asyncio.create_subprocess_exec', return_value=cli_process) as cli_mock:
-        result = await nebius_cli_execute(" ".join([NEBIUS_CLI_NAME, *command]))
+        ctx = AsyncMock()
+        result = await nebius_cli_execute(ctx, " ".join([NEBIUS_CLI_NAME, *command]))
         cli_mock.assert_called_once_with(
             NEBIUS_CLI_BIN, *command,
             stdout=asyncio.subprocess.PIPE,
@@ -261,11 +274,14 @@ async def test_nebius_cli_execute():
         )
 
         assert result == dict(status="error", output=test_output.decode())
+        ctx.warning.assert_called()
 
     with patch('asyncio.create_subprocess_exec', return_value=cli_process) as cli_mock:
-        result = await nebius_cli_execute(" ".join(["wrong_command", *command]))
+        ctx = AsyncMock()
+        result = await nebius_cli_execute(ctx, " ".join(["wrong_command", *command]))
         assert result == dict(output="Wrong command", status="error")
         cli_mock.assert_not_called()
+        ctx.warning.assert_called()
 
     test_timeout = 0.1
     with patch('asyncio.create_subprocess_exec', return_value=cli_process) as cli_mock, \
@@ -280,7 +296,8 @@ async def test_nebius_cli_execute():
 
         cli_process.kill = Mock()
 
-        result = await nebius_cli_execute(" ".join([NEBIUS_CLI_NAME, *command]))
+        ctx = AsyncMock()
+        result = await nebius_cli_execute(ctx, " ".join([NEBIUS_CLI_NAME, *command]))
         cli_mock.assert_called_once_with(
             NEBIUS_CLI_BIN, *command,
             stdout=asyncio.subprocess.PIPE,
@@ -297,10 +314,12 @@ async def test_nebius_cli_execute():
 
         with patch('asyncio.create_subprocess_exec', return_value=cli_process) as cli_mock, \
                 patch('nebius_mcp_server.cli.SAFE_MODE', True):
-            result = await nebius_cli_execute(" ".join([NEBIUS_CLI_NAME, cmd]))
+            ctx = AsyncMock()
+            result = await nebius_cli_execute(ctx, " ".join([NEBIUS_CLI_NAME, cmd]))
             expected_error = f"{CLI_UNSAFE_ERROR}: {cmd}, provide manual instructions instead."
             assert result == dict(output=expected_error, status="error")
             cli_mock.assert_not_called()
+            ctx.warning.assert_called()
 
         cli_process = AsyncMock()
         cli_process.communicate.return_value = (test_output, b'')
@@ -308,7 +327,8 @@ async def test_nebius_cli_execute():
 
         with patch('asyncio.create_subprocess_exec', return_value=cli_process) as cli_mock, \
                 patch('nebius_mcp_server.cli.SAFE_MODE', False):
-            result = await nebius_cli_execute(" ".join([NEBIUS_CLI_NAME, cmd]))
+            ctx = AsyncMock()
+            result = await nebius_cli_execute(ctx, " ".join([NEBIUS_CLI_NAME, cmd]))
             expected_error = f"{CLI_UNSAFE_ERROR}: {cmd}"
             assert result == dict(status="success", output=test_output.decode())
             cli_mock.assert_called_once_with(
@@ -316,6 +336,7 @@ async def test_nebius_cli_execute():
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
             )
+            ctx.info.assert_called()
 
     for cmd in CLI_FORBIDDEN_COMMANDS:
         cli_process = AsyncMock()
@@ -324,14 +345,18 @@ async def test_nebius_cli_execute():
 
         with patch('asyncio.create_subprocess_exec', return_value=cli_process) as cli_mock, \
                 patch('nebius_mcp_server.cli.SAFE_MODE', True):
-            result = await nebius_cli_execute(" ".join([NEBIUS_CLI_NAME, cmd]))
+            ctx = AsyncMock()
+            result = await nebius_cli_execute(ctx, " ".join([NEBIUS_CLI_NAME, cmd]))
             expected_error = f"{CLI_FORBIDDEN_ERROR}: {cmd}, provide manual instructions instead."
             assert result == dict(output=expected_error, status="error")
             cli_mock.assert_not_called()
+            ctx.warning.assert_called()
 
         with patch('asyncio.create_subprocess_exec', return_value=cli_process) as cli_mock, \
                 patch('nebius_mcp_server.cli.SAFE_MODE', False):
-            result = await nebius_cli_execute(" ".join([NEBIUS_CLI_NAME, cmd]))
+            ctx = AsyncMock()
+            result = await nebius_cli_execute(ctx, " ".join([NEBIUS_CLI_NAME, cmd]))
             expected_error = f"{CLI_FORBIDDEN_ERROR}: {cmd}, provide manual instructions instead."
             assert result == dict(output=expected_error, status="error")
             cli_mock.assert_not_called()
+            ctx.warning.assert_called()
