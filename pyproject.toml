@@ -8,7 +8,7 @@ license = { text = "MIT" }
 authors = [{ name = "Ivan Kornilov" }]
 dependencies = [
     "fastmcp>=2.0.0,<=2.11.1",
-    "mcp[cli]>=1.0.0,<=1.12.3",
+    "mcp[cli]>=1.0.0,<=1.13.1",
 ]
 
 [dependency-groups]
