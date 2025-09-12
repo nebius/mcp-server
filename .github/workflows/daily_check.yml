@@ -1,0 +1,49 @@
+name: Run daily tests with latest CLI
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: '0 11 * * *' # 12:00 CET, 13:00 CEST
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          activate-environment: true
+
+      - name: Install dependencies
+        run: uv sync --group test
+
+      - name: Install nebius CLI
+        run: curl -sSL https://storage.eu-north1.nebius.cloud/cli/install.sh | bash
+
+      - name: Run server tests
+        run: uv run pytest tests/test_server.py
+
+  notify-slack-on-failure:
+    name: Notify Slack on failure
+    if: failure()
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post text to a Slack channel
+        uses: slackapi/slack-github-action@v2.1.1
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_OAUTH_TOKEN }}
+          payload: |
+            channel: ${{ secrets.SLACK_CHANNEL }}
+            text: |
+              🚨 Workflow *${{ github.workflow }}* failed on <${{ github.server_url }}/${{ github.repository }}|${{ github.repository }}>
+              <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>
