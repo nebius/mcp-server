@@ -7,11 +7,12 @@ on:
       - 'dependabot/pip/**'
     paths:
       - 'pyproject.toml'
-
 jobs:
   update-uv-lock:
     if: github.actor == 'dependabot[bot]'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
