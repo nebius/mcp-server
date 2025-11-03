@@ -8,10 +8,17 @@ on:
   pull_request:
     branches:
       - main
+  workflow_run:
+    workflows: ["Upgrade uv.lock on Dependabot pip push"]
+    types:
+      - completed
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    if: >
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
 
     steps:
       - name: Checkout code
