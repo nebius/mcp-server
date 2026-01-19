@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 import shlex
 import re
 from typing import TypedDict, List
@@ -107,11 +108,15 @@ async def _get_available_services(command: str | None = None) -> list[ServiceDes
     else:
         cmd_parts = [NEBIUS_CLI_BIN, "--help"]
 
+    env = os.environ.copy()
+    env["NEBIUS_OLD_HELP"] = "1"
+
     try:
         process = await asyncio.create_subprocess_exec(
             *cmd_parts,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
+            env=env,
         )
         stdout, stderr = await process.communicate()
         help_text = stdout.decode()
@@ -225,10 +230,13 @@ async def execute_cli_command(command: str) -> CommandResult:
 async def _get_full_docs() -> str | None:
     try:
         cmd = [NEBIUS_CLI_BIN, "docs", "mcp"]
+        env = os.environ.copy()
+        env["NEBIUS_OLD_HELP"] = "1"
         proc = await asyncio.create_subprocess_exec(
             *cmd,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
+            env=env,
         )
         try:
             stdout, stderr = await asyncio.wait_for(proc.communicate(), EXECUTION_TIMEOUT)

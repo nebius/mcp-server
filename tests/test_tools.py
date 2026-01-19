@@ -5,6 +5,7 @@ To run tests use uv + pytest command in terminal:
 '''
 
 import asyncio
+import os
 from unittest.mock import AsyncMock, Mock, call, patch
 import pytest
 
@@ -136,6 +137,9 @@ async def test_nebius_profiles():
 
 @pytest.mark.asyncio
 async def test_nebius_available_services():
+    env = os.environ.copy()
+    env["NEBIUS_OLD_HELP"] = "1"
+
     async def subsequent_calls(*args, **kwargs):
         cli_process = AsyncMock()
         cli_process.returncode = 0
@@ -151,12 +155,14 @@ async def test_nebius_available_services():
             call.create_subprocess_exec(
                 NEBIUS_CLI_BIN, "--help",
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
+                env=env,
             ),
             call.create_subprocess_exec(
                 NEBIUS_CLI_BIN, "help", "iam",
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
+                env=env,
             )
         ], any_order=False)
 
@@ -185,13 +191,17 @@ async def test_nebius_cli_help():
     cli_process.communicate.return_value = (test_output, b'')
     cli_process.returncode = 0
 
+    env = os.environ.copy()
+    env["NEBIUS_OLD_HELP"] = "1"
+
     with patch('asyncio.create_subprocess_exec', return_value=cli_process) as cli_mock:
         ctx = AsyncMock()
         result = await nebius_cli_help(ctx, "applications")
         cli_mock.assert_called_once_with(
             NEBIUS_CLI_BIN, "docs", "mcp",
             stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
+            stderr=asyncio.subprocess.PIPE,
+            env=env,
         )
         ctx.info.assert_called()
 
@@ -209,7 +219,8 @@ async def test_nebius_cli_help():
         cli_mock.assert_called_once_with(
             NEBIUS_CLI_BIN, "docs", "mcp",
             stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
+            stderr=asyncio.subprocess.PIPE,
+            env=env,
         )
 
         assert result == dict(help_text=TEST_CLI_HELP_IAM_ACCESS_PERMIT.strip())
@@ -221,7 +232,8 @@ async def test_nebius_cli_help():
         cli_mock.assert_called_once_with(
             NEBIUS_CLI_BIN, "docs", "mcp",
             stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
+            stderr=asyncio.subprocess.PIPE,
+            env=env,
         )
 
         assert result == dict(help_text="")
