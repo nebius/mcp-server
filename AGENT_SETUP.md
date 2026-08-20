@@ -8,6 +8,7 @@ Determine:
 Run version checks without failing the entire workflow:
 ```
 codex --version
+claude --version
 python3 --version
 python --version
 uv --version
