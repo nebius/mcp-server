@@ -31,6 +31,9 @@ jobs:
       - name: Run server tests
         run: uv run pytest tests/test_server.py
 
+      - name: Run CLI-drift canary
+        run: uv run pytest tests/test_cli_drift.py
+
   notify-slack-on-failure:
     name: Notify Slack on failure
     if: failure()
