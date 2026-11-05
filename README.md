@@ -24,6 +24,10 @@ There are 2 main scenarios for this MCP server:
     - Get me a list of the available compute platforms
     - Show the details about the compute instance by name: some-cool-instance
 
+## Agent Skills
+
+[Nebius Agent Skills](https://github.com/nebius/skills) complement the MCP server with CLI workflows for inventory, capacity and quotas, provisioning, serverless jobs and endpoints, devlabs, and billing. To install them, see step 6 of [AGENT_SETUP.md](AGENT_SETUP.md).
+
 ## Requirements
 
 - Python (version >=3.13) with [uv package manager](https://github.com/astral-sh/uv) installed

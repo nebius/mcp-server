@@ -1,5 +1,5 @@
-This is official guide to setup Nebius MCP server for AI agents.
-Read this document and configure the latest Nebius MCP Server (https://github.com/nebius/mcp-server) locally for specific AI agent.
+This is official guide to setup Nebius MCP server and Nebius Agent Skills for AI agents.
+Read this document and configure the latest Nebius MCP Server (https://github.com/nebius/mcp-server) and Nebius Agent Skills (https://github.com/nebius/skills) locally for specific AI agent.
 
 ## 1. Detect the environment
 Determine:
@@ -14,9 +14,12 @@ python --version
 uv --version
 uvx --version
 nebius version
+node --version
+npx --version
 ```
 The Nebius MCP Server requires Python 3.13 or newer.
 Stop if version is lower than required and ask user to update python.
+Node.js and npx are only needed to install Nebius Agent Skills for some agents (step 6). Do not stop if they are missing.
 Nebius CLI is officially supported on macOS and Linux.
 On native Windows, explain that Nebius CLI must run under WSL2 Ubuntu.
 
@@ -40,7 +43,7 @@ Verify both commands:
 
 ## 3. Install and configure Nebius CLI
 First run: `nebius version`
-If Nebius CLI is installed but its version is lower than 0.12.65, run: `nebius update` and proceed with the next step.
+If Nebius CLI is installed but its version is lower than 0.12.277, run: `nebius update` and proceed with the next step.
 If it fails, install Nebius CLI on macOS, Ubuntu, or WSL Ubuntu using:
 `curl -sSL https://storage.eu-north1.nebius.cloud/cli/install.sh | bash`
 Reload the relevant shell configuration or update PATH for the current session without replacing the running agent shell.
@@ -253,8 +256,39 @@ Documentation for troubleshooting: https://docs.windsurf.com/windsurf/cascade/mc
 ```
 If the agent does not support local STDIO MCP servers, explain that the Nebius MCP Server cannot be configured using this local installation method.
 
-## 6. Final
-Ask user to restart the AI agent to connect to the Nebius MCP Server.
+## 6. Install Nebius Agent Skills (recommended)
+Nebius Agent Skills (https://github.com/nebius/skills) add CLI workflows on top of the MCP server: inventory, capacity and quotas, provisioning, serverless jobs and endpoints, devlabs, and billing.
+They use the Nebius CLI and the profile configured in steps 3 and 4, and follow a three-tier safety model: read, gated write, refuse.
+Ask the user whether to install them. If the user declines, skip to the final step.
+If the commands below disagree with the README of https://github.com/nebius/skills, the README wins.
+
+### Claude Code
+```
+claude plugin marketplace add nebius/skills
+claude plugin install nebius-cloud@nebius
+```
+
+Verify the installation: `claude plugin list`
+
+### Codex
+```
+codex plugin marketplace add nebius/skills
+codex plugin add nebius-cloud@nebius
+```
+
+If `codex plugin add` is not available, ask the user to restart Codex and enable the `nebius-cloud` plugin from the `/plugins` browser.
+
+### Cursor, GitHub Copilot (VS Code and CLI), OpenCode, Windsurf, and any other agent
+Requires Node.js 22.20 or newer (`node --version`). Install with the `skills` CLI (https://github.com/vercel-labs/skills):
+```
+npx skills add nebius/skills --global --agent <agent-id> --yes
+```
+Use one of these agent IDs: `cursor`, `github-copilot`, `opencode`, `windsurf`. For any other agent, find its ID in https://github.com/vercel-labs/skills/blob/main/docs/agents.md.
+
+If Node.js is unavailable or too old, copy `skills/*` from the https://github.com/nebius/skills repository into the agent's user-level skills directory. Tell the user that this method has no update path.
+
+## 7. Final
+Ask user to restart the AI agent to connect to the Nebius MCP Server and load Nebius Agent Skills.
 
 ### Print scenarios examples for this MCP server:
 Get and analyze the documentation for every service:
@@ -264,3 +298,8 @@ Execute commands and get results:
 - Provide me a list of all storage buckets within the project: project-e00some-cool-project
 - Get me a list of the available compute platforms
 - Show the details about the compute instance by name: some-cool-instance
+
+### Print scenarios examples for Nebius Agent Skills (if installed):
+- Can I launch 8×B200 in us-central1-b?
+- How much will an H100 VM cost per month?
+- Run this container as a batch job on one H100.
