@@ -1,6 +1,16 @@
 This is official guide to setup Nebius MCP server and Nebius Agent Skills for AI agents.
 Read this document and configure the latest Nebius MCP Server (https://github.com/nebius/mcp-server) and Nebius Agent Skills (https://github.com/nebius/skills) locally for specific AI agent.
 
+## Before starting: check local access and permissions
+Confirm from the available tools, session information, and read-only checks that installation commands and configuration edits affect the user's actual laptop. Running commands in an isolated workspace or accessing a shared folder does not by itself establish local installation access. If the execution location is unclear, clarify it before making changes.
+
+Identify which agent to configure only if unclear, then briefly explain what setup will install or change.
+
+- **Local installation access is available:** proceed with the requested setup. Request specific command, network, or file approvals as needed. If the current mode only permits planning or reading, explain how to switch to a mode that allows the required actions, using the agent's supported controls.
+- **Local installation access is unavailable:** explain the missing capability and guide the user to a local session of their chosen agent, through its desktop app, editor integration, or terminal. Ask them to select a local folder and provide this guide again. If no suitable local session is available, provide the applicable commands for the user to run in their laptop's terminal.
+
+Do not require blanket permissions or disabled safety checks. Changing approval settings does not give a cloud-only workspace access to the laptop. If permissions or organization policy prevent an action, identify the restriction and the specific user or administrator action needed. Preserve the Python choice in step 2 and account/profile choices in step 4; do not repeat questions already answered.
+
 ## 1. Detect the environment
 Determine:
 - Operating system: macOS, Linux, Windows, or WSL
