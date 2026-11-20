@@ -40,7 +40,7 @@ nebius update
 
 Use the next command to configure your MCP-compatible client (see examples below):
 ```bash
-uvx --refresh-package nebius-mcp-server "nebius-mcp-server@git+https://github.com/nebius/mcp-server@main"
+uvx --python 3.14 --refresh-package nebius-mcp-server "nebius-mcp-server@git+https://github.com/nebius/mcp-server@main"
 ```
 
 ### Restricted actions and safe mode
@@ -62,6 +62,8 @@ For safety reasons Nebius MCP server **always forbids** execution of any command
             "Nebius MCP Server": {
                 "command": "uvx",
                 "args": [
+                    "--python",
+                    "3.14",
                     "--refresh-package",
                     "nebius-mcp-server",
                     "nebius-mcp-server@git+https://github.com/nebius/mcp-server@main"
@@ -82,7 +84,7 @@ For safety reasons Nebius MCP server **always forbids** execution of any command
 
 1. Open the Command Palette (Cmd+Shift+P / Ctrl+Shift+P) and run **mcp: Add Server**
 
-2. Choose `Command (stdio)` and enter the following command: `uvx --refresh-package nebius-mcp-server "nebius-mcp-server@git+https://github.com/nebius/mcp-server@main"`
+2. Choose `Command (stdio)` and enter the following command: `uvx --python 3.14 --refresh-package nebius-mcp-server "nebius-mcp-server@git+https://github.com/nebius/mcp-server@main"`
 
 3. Open the Chat panel and select **Agent** mode
     - You will now see the new MCP and its available tools by clicking the  :hammer_and_wrench:  button
