@@ -15,7 +15,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version-file: "pyproject.toml"
+          python-version: "3.14"
 
       - name: Install uv
         uses: astral-sh/setup-uv@v6
@@ -23,7 +23,7 @@ jobs:
           activate-environment: true
 
       - name: Install dependencies
-        run: uv sync --group test
+        run: uv sync --locked --group test
 
       - name: Install nebius CLI
         run: curl -sSL https://storage.eu-north1.nebius.cloud/cli/install.sh | bash
