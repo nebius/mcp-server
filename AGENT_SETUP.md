@@ -65,6 +65,7 @@ Use the correct section for the specific AI agent below.
 codex mcp add nebius \
   --env SAFE_MODE=true \
   -- uvx \
+  --python 3.14 \
   --refresh-package nebius-mcp-server \
   "nebius-mcp-server@git+https://github.com/nebius/mcp-server@main"
 
@@ -79,6 +80,7 @@ claude mcp add \
   --scope user \
   nebius \
   -- uvx \
+  --python 3.14 \
   --refresh-package nebius-mcp-server \
   "nebius-mcp-server@git+https://github.com/nebius/mcp-server@main"
 
@@ -99,6 +101,8 @@ Merge the following entry into the top-level mcpServers object:
       "type": "stdio",
       "command": "uvx",
       "args": [
+        "--python",
+        "3.14",
         "--refresh-package",
         "nebius-mcp-server",
         "nebius-mcp-server@git+https://github.com/nebius/mcp-server@main"
@@ -123,6 +127,8 @@ Merge the following entry into the top-level servers object:
       "type": "stdio",
       "command": "uvx",
       "args": [
+        "--python",
+        "3.14",
         "--refresh-package",
         "nebius-mcp-server",
         "nebius-mcp-server@git+https://github.com/nebius/mcp-server@main"
@@ -142,6 +148,7 @@ The recommended installation method is the Copilot CLI command:
 copilot mcp add nebius \
   --env SAFE_MODE=true \
   -- uvx \
+  --python 3.14 \
   --refresh-package nebius-mcp-server \
   "nebius-mcp-server@git+https://github.com/nebius/mcp-server@main"
 ```
@@ -158,6 +165,8 @@ For manual configuration, merge the following entry into the top-level mcpServer
       "type": "local",
       "command": "uvx",
       "args": [
+        "--python",
+        "3.14",
         "--refresh-package",
         "nebius-mcp-server",
         "nebius-mcp-server@git+https://github.com/nebius/mcp-server@main"
@@ -184,6 +193,8 @@ Merge the nebius entry into the top-level mcp object:
       "type": "local",
       "command": [
         "uvx",
+        "--python",
+        "3.14",
         "--refresh-package",
         "nebius-mcp-server",
         "nebius-mcp-server@git+https://github.com/nebius/mcp-server@main"
@@ -213,6 +224,8 @@ Merge the following entry into the top-level mcpServers object:
     "nebius": {
       "command": "uvx",
       "args": [
+        "--python",
+        "3.14",
         "--refresh-package",
         "nebius-mcp-server",
         "nebius-mcp-server@git+https://github.com/nebius/mcp-server@main"
@@ -241,6 +254,8 @@ Documentation for troubleshooting: https://docs.windsurf.com/windsurf/cascade/mc
   "nebius": {
     "command": "uvx",
     "args": [
+      "--python",
+      "3.14",
       "--refresh-package",
       "nebius-mcp-server",
       "nebius-mcp-server@git+https://github.com/nebius/mcp-server@main"
