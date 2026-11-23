@@ -20,6 +20,7 @@ from nebius_mcp_server.config import (
   CLI_UNSAFE_ERROR,
 )
 from nebius_mcp_server.server import (
+    mcp,
     nebius_profiles,
     nebius_available_services,
     nebius_cli_help,
@@ -372,3 +373,19 @@ async def test_nebius_cli_execute():
             assert result == dict(output=expected_error, status="error")
             cli_mock.assert_not_called()
             ctx.warning.assert_called()
+
+
+@pytest.mark.asyncio
+async def test_tools_are_registered_with_input_schemas():
+    # Building tool schemas goes through the mcp SDK's pydantic integration,
+    # which is what broke at import time on pydantic 2.14 with mcp <= 1.21.0.
+    tools = {tool.name: tool for tool in await mcp.list_tools()}
+
+    assert set(tools) == {
+        "nebius_profiles",
+        "nebius_available_services",
+        "nebius_cli_help",
+        "nebius_cli_execute",
+    }
+    for tool in tools.values():
+        assert tool.inputSchema["type"] == "object"
